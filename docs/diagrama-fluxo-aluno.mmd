@@ -1,0 +1,27 @@
+sequenceDiagram
+  actor Aluno
+  participant S as Storefront :3000
+  participant G as Gateway :4000
+  participant C as Catálogo :4003
+  participant R as Classroom :3004
+  participant P as Progresso :4004
+
+  Aluno->>S: Acessa /
+  S->>G: GET /api/catalog/courses
+  G->>C: GET /courses
+  C-->>S: Cursos
+  Aluno->>S: Seleciona curso
+  S->>R: Proxy /curso/:id
+  R->>G: GET /api/catalog/courses/:id
+  G->>C: GET /courses/:id
+  C-->>R: Curso e aulas
+  R->>G: POST /api/progress/enrollments
+  G->>P: POST /enrollments
+  R->>G: GET /api/progress/enrollments/:user/:course
+  G->>P: GET progresso
+  P-->>R: Aulas concluídas
+  R-->>Aluno: Sala de aula
+  Aluno->>R: Marca aula
+  R->>G: PATCH progresso
+  G->>P: PATCH aula
+  P-->>R: Percentual/certificado

@@ -1,0 +1,16 @@
+flowchart LR
+  Browser["Navegador"] --> Storefront["Storefront\n:3000"]
+  Storefront -->|"proxy /curso/*"| Classroom["Classroom\n:3004"]
+  Storefront --> Gateway["API Gateway\n:4000"]
+  Classroom --> Gateway
+  Gateway --> Auth["Auth\n:4001"]
+  Gateway --> Admin["Admin\n:4002"]
+  Gateway --> Catalog["Catálogo\n:4003"]
+  Gateway --> Progress["Progresso\n:4004"]
+  Gateway --> Files["Arquivos\n:4005"]
+  Auth --> AuthDB[("auth.sqlite")]
+  Admin --> AdminDB[("admin.sqlite")]
+  Catalog --> CatalogDB[("catalog.sqlite")]
+  Progress --> ProgressDB[("progress.sqlite")]
+  Files --> FilesDB[("files.sqlite")]
+  Files --> Storage[("files-data")]

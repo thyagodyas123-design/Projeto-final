@@ -1,5 +1,7 @@
 # Arquitetura
 
+Diagramas também estão disponíveis separadamente em [`diagrama-arquitetura.mmd`](diagrama-arquitetura.mmd) e [`diagrama-fluxo-aluno.mmd`](diagrama-fluxo-aluno.mmd).
+
 ## Visão geral
 
 O sistema usa um monorepo pnpm/Turborepo, oito aplicações executadas localmente pelo Docker Compose e pacotes compartilhados. Cada domínio backend possui seu processo e seu banco SQLite; o Gateway é a entrada única das APIs.
