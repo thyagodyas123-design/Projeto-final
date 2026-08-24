@@ -1,0 +1,11 @@
+node_modules/
+.turbo/
+dist/
+.next/
+storage/files/
+storage/auth/
+.env*
+!.env.example
+.superpowers/
+storage/catalog/
+.DS_Store

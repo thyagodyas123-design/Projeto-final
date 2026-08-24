@@ -1,0 +1,1 @@
+{"name":"@plataforma/gateway","private":true,"type":"module","scripts":{"dev":"node src/health.mjs","build":"node --check src/health.mjs","typecheck":"node --check src/health.mjs"}}

@@ -1,0 +1,9 @@
+{
+  "name": "@plataforma/shared",
+  "private": true,
+  "type": "module",
+  "main": "data.mjs",
+  "exports": {
+    ".": "./data.mjs"
+  }
+}

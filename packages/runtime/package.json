@@ -1,0 +1,6 @@
+{
+  "name": "@plataforma/runtime",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "node --check health.mjs", "typecheck": "node --check health.mjs" }
+}

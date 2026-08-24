@@ -1,0 +1,14 @@
+{
+  "name": "plataforma-educacional",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "pnpm --parallel --filter './apps/*' dev",
+    "build": "pnpm --recursive run build",
+    "test": "node --test",
+    "typecheck": "pnpm --recursive run typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3"
+  }
+}

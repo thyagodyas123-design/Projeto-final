@@ -1,0 +1,10 @@
+packages:
+  - "apps/auth"
+  - "apps/admin"
+  - "apps/catalog"
+  - "apps/progress"
+  - "apps/files"
+  - "apps/gateway"
+  - "apps/storefront"
+  - "apps/classroom"
+  - "packages/*"
