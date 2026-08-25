@@ -1,23 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createAuthHttpServer } from '../apps/auth/src/auth-http.mjs';
-import { createAuthRepository } from '../apps/auth/src/auth-repository.mjs';
 
-const memoryServer = () => createAuthHttpServer({ secret: 'http-test-secret', repository: createAuthRepository(':memory:') });
-const closeServer = (server) => new Promise((resolve) => {
-  server.closeAllConnections?.();
-  server.close(resolve);
-});
+const DIST = new URL('../apps/auth/dist/app.module.js', import.meta.url);
+const BUILT = existsSync(DIST);
 
-test('POST /auth/register cria aluno e define cookie HttpOnly', async () => {
-  const server = memoryServer();
-  await new Promise((resolve) => server.listen(0, resolve));
-  const address = server.address();
+const t = (name, fn) =>
+  BUILT
+    ? test(name, fn)
+    : test(name, { skip: 'auth não compilado — rode pnpm build primeiro' }, fn);
 
-  const response = await fetch(`http://127.0.0.1:${address.port}/auth/register`, {
+async function startApp(database = ':memory:') {
+  process.env.AUTH_DATABASE = database;
+  const { createTestApp, listen } = await import('../apps/auth/test-server.mjs');
+  const app = await createTestApp();
+  const url = await listen(app);
+  return { app, url };
+}
+
+t('POST /auth/register cria aluno e define cookie HttpOnly', async () => {
+  const { app, url } = await startApp();
+
+  const response = await fetch(`${url}/auth/register`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ email: 'ana@example.com', password: 'Senha123!' }),
@@ -27,47 +33,75 @@ test('POST /auth/register cria aluno e define cookie HttpOnly', async () => {
   assert.equal(response.status, 201);
   assert.equal(body.user.role, 'student');
   assert.match(response.headers.get('set-cookie'), /access_token=.*HttpOnly/);
-  await closeServer(server);
+  await app.close();
 });
 
-test('POST /auth/login rejeita credencial inválida', async () => {
-  const server = memoryServer();
-  await new Promise((resolve) => server.listen(0, resolve));
-  const address = server.address();
+t('POST /auth/login rejeita credencial inválida', async () => {
+  const { app, url } = await startApp();
 
-  const response = await fetch(`http://127.0.0.1:${address.port}/auth/login`, {
+  const response = await fetch(`${url}/auth/login`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ email: 'missing@example.com', password: 'Senha123!' }),
   });
 
   assert.equal(response.status, 401);
-  await closeServer(server);
+  await app.close();
 });
 
-test('Auth HTTP preserva cadastro no SQLite entre instâncias', async () => {
+t('Auth HTTP preserva cadastro no SQLite entre instâncias', async () => {
   const directory = mkdtempSync(join(tmpdir(), 'plataforma-auth-'));
   const filename = join(directory, 'auth.sqlite');
-  const first = createAuthRepository(filename);
-  const firstServer = createAuthHttpServer({ secret: 'persistent-secret', repository: first });
-  await new Promise((resolve) => firstServer.listen(0, resolve));
-  const firstPort = firstServer.address().port;
-  const register = await fetch(`http://127.0.0.1:${firstPort}/auth/register`, {
-    method: 'POST', headers: { 'content-type': 'application/json' },
+
+  const { app: firstApp, url: firstUrl } = await startApp(filename);
+  const register = await fetch(`${firstUrl}/auth/register`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ email: 'persisted@example.com', password: 'Senha123!' }),
   });
   assert.equal(register.status, 201);
-  await closeServer(firstServer);
+  await firstApp.close();
 
-  const second = createAuthRepository(filename);
-  const secondServer = createAuthHttpServer({ secret: 'persistent-secret', repository: second });
-  await new Promise((resolve) => secondServer.listen(0, resolve));
-  const secondPort = secondServer.address().port;
-  const login = await fetch(`http://127.0.0.1:${secondPort}/auth/login`, {
-    method: 'POST', headers: { 'content-type': 'application/json' },
+  const { app: secondApp, url: secondUrl } = await startApp(filename);
+  const login = await fetch(`${secondUrl}/auth/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ email: 'persisted@example.com', password: 'Senha123!' }),
   });
   assert.equal(login.status, 200);
-  await closeServer(secondServer);
-  first.close(); second.close(); rmSync(directory, { recursive: true, force: true });
+  await secondApp.close();
+  rmSync(directory, { recursive: true, force: true });
+});
+
+t('GET /auth/me retorna usuário logado via cookie', async () => {
+  const { app, url } = await startApp();
+  const register = await fetch(`${url}/auth/register`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'me@example.com', password: 'Senha123!' }),
+  });
+  const cookie = register.headers.get('set-cookie').split(';')[0];
+
+  const me = await fetch(`${url}/auth/me`, { headers: { cookie } });
+  const body = await me.json();
+
+  assert.equal(me.status, 200);
+  assert.equal(body.user.email, 'me@example.com');
+  assert.equal(body.user.role, 'student');
+  await app.close();
+});
+
+t('GET /auth/me retorna 401 sem cookie', async () => {
+  const { app, url } = await startApp();
+  const me = await fetch(`${url}/auth/me`);
+  assert.equal(me.status, 401);
+  await app.close();
+});
+
+t('POST /auth/logout limpa o cookie', async () => {
+  const { app, url } = await startApp();
+  const logout = await fetch(`${url}/auth/logout`, { method: 'POST' });
+  assert.equal(logout.status, 200);
+  assert.match(logout.headers.get('set-cookie'), /Max-Age=0/);
+  await app.close();
 });

@@ -24,8 +24,18 @@ test('compose declara os serviços locais', () => {
 });
 
 test('cada serviço possui endpoint de health implementado', () => {
-  for (const service of ['auth', 'admin', 'catalog', 'progress', 'files', 'gateway']) {
-    assert.equal(existsSync(`apps/${service}/src/health.mjs`), true, `${service} sem health`);
+  /* Todos os serviços migraram para NestJS: health é uma rota do controller */
+  const controllers = {
+    auth: 'apps/auth/src/auth/auth.controller.ts',
+    admin: 'apps/admin/src/admin/admin.controller.ts',
+    catalog: 'apps/catalog/src/catalog/catalog.controller.ts',
+    progress: 'apps/progress/src/progress/progress.controller.ts',
+    files: 'apps/files/src/files/files.controller.ts',
+    gateway: 'apps/gateway/src/gateway.controller.ts',
+  };
+  for (const [service, file] of Object.entries(controllers)) {
+    const content = readFileSync(file, 'utf8');
+    assert.match(content, /@Get\('health'\)/, `${service} sem health`);
   }
 });
 

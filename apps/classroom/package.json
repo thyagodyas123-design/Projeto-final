@@ -1,13 +1,16 @@
 {
   "name": "@plataforma/classroom",
   "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "node src/server.mjs",
-    "build": "node --check src/server.mjs",
-    "typecheck": "node --check src/server.mjs"
+    "dev": "next dev -p 3004",
+    "build": "next build",
+    "start": "next start -p 3004",
+    "typecheck": "next build"
   },
   "dependencies": {
-    "@plataforma/shared": "workspace:*"
+    "@plataforma/shared": "workspace:*",
+    "next": "14.2.29",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

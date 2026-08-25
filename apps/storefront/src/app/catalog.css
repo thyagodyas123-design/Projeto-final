@@ -1,0 +1,214 @@
+/* ─── Storefront Page Header ─── */
+.page-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px 0;
+}
+.page-header h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+.page-header p {
+  font-size: 1.05rem;
+  color: var(--gray-500);
+  max-width: 560px;
+}
+
+/* ─── Source Badge ─── */
+.source-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 6px;
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em;
+  margin-left: 12px; vertical-align: middle;
+}
+.source-badge.online { background: #dcfce7; color: #166534; }
+.source-badge.offline { background: #fef3c7; color: #92400e; }
+
+/* ─── Loading Bar ─── */
+.loading-bar {
+  position: fixed; top: 64px; left: 0; right: 0; height: 3px;
+  background: var(--blue-100); z-index: 99; overflow: hidden;
+  opacity: 0; transition: opacity 0.3s;
+}
+.loading-bar.active { opacity: 1; }
+.loading-bar::after {
+  content: ''; position: absolute; top: 0; left: -40%;
+  width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, var(--blue-500), transparent);
+  animation: loadingSlide 1s ease-in-out infinite;
+}
+
+/* ─── Search / Filters ─── */
+.filters-bar {
+  max-width: 1200px; margin: 28px auto 0; padding: 0 24px;
+  display: flex; gap: 12px; align-items: center;
+}
+.search-box { flex: 1; max-width: 420px; position: relative; }
+.search-box input {
+  width: 100%; padding: 12px 16px 12px 44px;
+  border: 1.5px solid var(--gray-200); border-radius: 10px;
+  font-family: inherit; font-size: 0.95rem; color: var(--gray-800);
+  background: var(--white); outline: none; transition: all var(--transition);
+}
+.search-box input::placeholder { color: var(--gray-400); }
+.search-box input:focus {
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+.search-box .search-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  color: var(--gray-400); display: flex; pointer-events: none;
+}
+.filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-chip {
+  padding: 10px 18px; border-radius: 10px;
+  border: 1.5px solid var(--gray-200); background: var(--white);
+  font-family: inherit; font-size: 0.85rem; font-weight: 500;
+  color: var(--gray-600); cursor: pointer; transition: all var(--transition);
+  white-space: nowrap;
+}
+.filter-chip:hover { border-color: var(--blue-400); color: var(--blue-600); }
+.filter-chip.active {
+  background: var(--blue-600); color: #fff; border-color: var(--blue-600);
+}
+
+/* ─── Course Grid ─── */
+.catalog { max-width: 1200px; margin: 32px auto 0; padding: 0 24px 60px; }
+.course-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px;
+}
+
+/* ─── Course Card ─── */
+.course-card {
+  background: var(--white); border-radius: var(--radius);
+  border: 1px solid var(--gray-200); overflow: hidden; cursor: pointer;
+  transition: all var(--transition); position: relative;
+}
+.course-card::after {
+  content: ''; position: absolute; inset: 0; border-radius: var(--radius);
+  border: 2px solid transparent; transition: border-color var(--transition);
+  pointer-events: none;
+}
+.course-card:hover {
+  transform: translateY(-4px); box-shadow: var(--shadow-lg);
+  border-color: var(--blue-400);
+}
+.course-card:hover::after { border-color: var(--blue-500); }
+.card-image {
+  height: 180px; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.card-image-pattern {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.card-badge {
+  position: absolute; top: 14px; left: 14px;
+  padding: 5px 12px; border-radius: 6px;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; z-index: 2;
+}
+.card-body { padding: 20px; }
+.card-title {
+  font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem;
+  font-weight: 600; color: var(--gray-900); margin-bottom: 6px;
+}
+.card-description {
+  font-size: 0.88rem; color: var(--gray-500); line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--gray-100);
+}
+.card-instructor {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.82rem; color: var(--gray-500);
+}
+.card-instructor svg { flex-shrink: 0; opacity: 0.6; }
+.card-link {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.88rem; font-weight: 600; color: var(--blue-600);
+  text-decoration: none; transition: all var(--transition);
+}
+.card-link:hover { color: var(--blue-700); gap: 8px; }
+
+/* ─── Certification Banner ─── */
+.cert-banner { max-width: 1200px; margin: 0 auto 60px; padding: 0 24px; }
+.cert-inner {
+  background: linear-gradient(135deg, var(--blue-50), #eef2ff);
+  border: 1px solid var(--blue-100); border-radius: var(--radius);
+  padding: 28px 32px; display: flex; align-items: center;
+  justify-content: space-between; gap: 24px;
+}
+.cert-left { display: flex; align-items: center; gap: 18px; }
+.cert-icon {
+  width: 56px; height: 56px; border-radius: 14px; background: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-sm); flex-shrink: 0;
+}
+.cert-text h3 {
+  font-family: 'Space Grotesk', sans-serif; font-weight: 600;
+  font-size: 1.05rem; color: var(--gray-900); margin-bottom: 2px;
+}
+.cert-text p { font-size: 0.88rem; color: var(--gray-500); }
+.cert-btn {
+  padding: 10px 24px; border-radius: 10px;
+  border: 1.5px solid var(--blue-600); background: var(--white);
+  color: var(--blue-600); font-family: inherit; font-size: 0.9rem;
+  font-weight: 600; cursor: pointer; transition: all var(--transition);
+  white-space: nowrap;
+}
+.cert-btn:hover { background: var(--blue-600); color: #fff; }
+
+/* ─── Empty State ─── */
+.empty-state {
+  display: none; grid-column: 1 / -1; text-align: center; padding: 80px 20px;
+}
+.empty-state.visible { display: block; }
+.empty-state svg { margin: 0 auto 16px; opacity: 0.3; }
+.empty-state h3 { font-size: 1.1rem; color: var(--gray-600); margin-bottom: 4px; }
+.empty-state p { font-size: 0.9rem; color: var(--gray-400); }
+
+/* ─── Skeleton ─── */
+.skeleton-card { pointer-events: none; }
+.skeleton-image { background: var(--gray-200); position: relative; overflow: hidden; }
+.skeleton-shimmer {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 1.5s infinite;
+}
+.skeleton-line {
+  height: 14px; background: var(--gray-200); border-radius: 6px;
+  margin-bottom: 8px; position: relative; overflow: hidden;
+}
+.skeleton-line::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  animation: shimmer 1.5s infinite;
+}
+.skeleton-title { width: 60%; height: 18px; }
+.skeleton-desc { width: 90%; }
+.skeleton-desc.short { width: 50%; }
+.skeleton-small { width: 80px; height: 12px; }
+.skeleton-link { width: 100px; height: 12px; }
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .page-header h1 { font-size: 1.75rem; }
+  .course-grid { grid-template-columns: 1fr; }
+  .cert-inner { flex-direction: column; text-align: center; }
+  .cert-left { flex-direction: column; }
+  .filters-bar { flex-wrap: wrap; }
+  .search-box { max-width: 100%; }
+  .header-logo { font-size: 1rem; }
+  .nav-link { padding: 6px 12px; font-size: 0.82rem; }
+}
+@media (max-width: 480px) {
+  .filter-group { display: none; }
+}
