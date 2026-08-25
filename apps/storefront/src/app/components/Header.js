@@ -40,7 +40,7 @@ export default function Header() {
   return (
     <header className="header">
       <div className="header-inner">
-        <a className="header-logo" href="/">Fábrica de <span>Gênios</span></a>
+        <a className="header-logo" href="/">Cursando <span>Flow</span></a>
 
         <nav className="header-nav" role="navigation" aria-label="Principal">
           {!loading && user ? (

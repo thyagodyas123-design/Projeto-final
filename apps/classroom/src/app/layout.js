@@ -1,7 +1,7 @@
 import '../globals.css';
 
 export const metadata = {
-  title: 'Fábrica de Gênios — Sala de Aula',
+  title: 'Cursando Flow — Sala de Aula',
 };
 
 export default function RootLayout({ children }) {

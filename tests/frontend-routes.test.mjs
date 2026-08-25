@@ -130,7 +130,7 @@ describe('Storefront (Next.js)', gated({}), () => {
     const res = await fetch(`${SF_URL}/`);
     assert.equal(res.status, 200);
     assert.ok(res.body.includes('Catálogo de Cursos'));
-    assert.ok(res.body.includes('Fábrica de Gênios'));
+    assert.ok(res.body.includes('Cursando Flow'));
   });
 
   it('catálogo renderiza estado de carregamento (skeleton) no SSR', async () => {

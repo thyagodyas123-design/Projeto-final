@@ -2,7 +2,7 @@ import './globals.css';
 import './auth.css';
 
 export const metadata = {
-  title: 'Fábrica de Gênios — Catálogo de Cursos',
+  title: 'Cursando Flow — Catálogo de Cursos',
   description: 'Explore nossas trilhas de aprendizado e expanda suas habilidades.',
 };
 

@@ -68,7 +68,7 @@ export default function RegisterPage() {
       <main className="auth-page">
         <div className="auth-card animate-in">
           <h1 className="auth-title">Criar conta</h1>
-          <p className="auth-subtitle">Comece sua jornada na Fábrica de Gênios.</p>
+          <p className="auth-subtitle">Comece sua jornada no Cursando Flow.</p>
 
           {error ? <div className="alert-error" role="alert">{error}</div> : null}
 

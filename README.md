@@ -1,4 +1,4 @@
-# Fábrica de Gênios — Plataforma Educacional
+# Cursando Flow — Plataforma Educacional
 
 Plataforma educacional modular com catálogo de cursos, sala de aula, progresso, certificados, materiais complementares e fluxo administrativo de remoção de cursos.
 

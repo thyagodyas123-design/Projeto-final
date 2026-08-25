@@ -4,7 +4,7 @@ import ClassroomClient from './classroom-client.js';
 import '../../classroom.css';
 
 export const metadata = {
-  title: 'Fábrica de Gênios — Sala de Aula',
+  title: 'Cursando Flow — Sala de Aula',
 };
 
 export default async function CoursePage({ params }) {
