@@ -2,6 +2,8 @@
 
 As APIs são acessadas diretamente pelas portas abaixo ou pelo Gateway usando `/api/{serviço}`.
 
+> **Erros**: os serviços usam NestJS, então respostas de erro seguem o formato `{ message, error, statusCode }` (ex.: `400`, `401`, `404`). Exceções: o Gateway responde `{ error }` para rotas desconhecidas e `{ error: "serviço indisponível" }` para serviços fora do ar.
+
 ## Auth — `4001`
 
 | Método | Rota | Corpo | Resultado |

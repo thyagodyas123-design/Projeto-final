@@ -1,9 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createAuthRepository } from '../apps/auth/src/auth-repository.mjs';
+import { existsSync } from 'node:fs';
 
-test('persiste usuários no SQLite e recupera por e-mail', async () => {
-  const repository = createAuthRepository(':memory:');
+const DIST = new URL('../apps/auth/dist/auth/auth.repository.js', import.meta.url);
+const BUILT = existsSync(DIST);
+
+const t = (name, fn) =>
+  BUILT
+    ? test(name, fn)
+    : test(name, { skip: 'auth não compilado — rode pnpm build primeiro' }, fn);
+
+t('persiste usuários no SQLite e recupera por e-mail', async () => {
+  const { AuthRepository } = await import(DIST.href);
+  const repository = new AuthRepository(':memory:');
   const user = {
     id: 'user-1',
     email: 'ana@example.com',
@@ -17,8 +26,9 @@ test('persiste usuários no SQLite e recupera por e-mail', async () => {
   repository.close();
 });
 
-test('impede duplicidade de e-mail no SQLite', async () => {
-  const repository = createAuthRepository(':memory:');
+t('impede duplicidade de e-mail no SQLite', async () => {
+  const { AuthRepository } = await import(DIST.href);
+  const repository = new AuthRepository(':memory:');
   const user = { id: 'user-1', email: 'ana@example.com', role: 'student', password: 'x', active: true };
   await repository.saveUser(user);
 

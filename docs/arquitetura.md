@@ -65,7 +65,7 @@ sequenceDiagram
 | Files | metadados e arquivos | `files-db` + `files-data` |
 | Gateway | roteamento HTTP | nenhuma |
 
-As implementações atuais utilizam Node HTTP nativo e o binário SQLite disponível no container. A migração para NestJS/Next.js pode ser feita sem alterar os contratos documentados.
+Os backends são implementados em **NestJS + TypeScript** (compilados via `tsc` para `dist/`, com o binário SQLite do container para persistência) e os frontends em **Next.js 14 (App Router)**. O Gateway usa o adaptador Express com `bodyParser: false` para encaminhar o corpo bruto (streaming) aos serviços.
 
 ## Regras de publicação
 

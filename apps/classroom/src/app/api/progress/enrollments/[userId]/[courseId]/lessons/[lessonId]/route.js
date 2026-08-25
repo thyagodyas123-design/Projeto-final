@@ -1,0 +1,21 @@
+import { NextResponse } from 'next/server';
+
+const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:4000';
+
+export async function PATCH(request, { params }) {
+  try {
+    const { id: userId, courseId, lessonId } = params;
+    const body = await request.json();
+    const target = new URL(`/api/progress/enrollments/${userId}/${courseId}/lessons/${lessonId}`, GATEWAY_URL);
+    const res = await fetch(target, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000),
+    });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
+  } catch {
+    return NextResponse.json({ error: 'progresso indisponível' }, { status: 502 });
+  }
+}

@@ -1,16 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createAdminHttpServer } from '../apps/admin/src/admin-http.mjs';
+import { existsSync } from 'node:fs';
 
-test('API Admin cria e lista solicitações pendentes', async () => {
-  const server = createAdminHttpServer({ database: ':memory:' });
-  await new Promise((resolve) => server.listen(0, resolve));
-  const base = `http://127.0.0.1:${server.address().port}`;
-  const created = await fetch(`${base}/removal-requests`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ courseId: 'course-1', requestedBy: 'teacher-1', actorRole: 'teacher' }) });
-  const list = await fetch(`${base}/removal-requests?status=pending`);
+const DIST = new URL('../apps/admin/dist/app.module.js', import.meta.url);
+const BUILT = existsSync(DIST);
+
+const t = (name, fn) =>
+  BUILT
+    ? test(name, fn)
+    : test(name, { skip: 'admin não compilado — rode pnpm build primeiro' }, fn);
+
+async function startApp() {
+  process.env.ADMIN_DATABASE = ':memory:';
+  const { createTestApp, listen } = await import('../apps/admin/test-server.mjs');
+  const app = await createTestApp();
+  const url = await listen(app);
+  return { app, url };
+}
+
+t('API Admin cria e lista solicitações pendentes', async () => {
+  const { app, url } = await startApp();
+  const created = await fetch(`${url}/removal-requests`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ courseId: 'course-1', requestedBy: 'teacher-1', actorRole: 'teacher' }) });
+  const list = await fetch(`${url}/removal-requests?status=pending`);
 
   assert.equal(created.status, 201);
   assert.equal((await list.json()).length, 1);
-  server.closeAllConnections?.();
-  await new Promise((resolve) => server.close(resolve));
+  await app.close();
 });

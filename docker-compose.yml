@@ -3,28 +3,28 @@ services:
     build: .
     working_dir: /workspace
     volumes: ["auth-data:/workspace/storage/auth"]
-    command: node apps/auth/src/health.mjs
+    command: node apps/auth/dist/main.js
     environment: ["PORT=4001"]
     ports: ["4001:4001"]
   admin:
     build: .
     working_dir: /workspace
     volumes: ["admin-data:/workspace/storage/admin"]
-    command: node apps/admin/src/health.mjs
+    command: node apps/admin/dist/main.js
     environment: ["PORT=4002"]
     ports: ["4002:4002"]
   catalog:
     build: .
     working_dir: /workspace
     volumes: ["catalog-data:/workspace/storage/catalog"]
-    command: node apps/catalog/src/health.mjs
+    command: node apps/catalog/dist/main.js
     environment: ["PORT=4003"]
     ports: ["4003:4003"]
   progress:
     build: .
     working_dir: /workspace
     volumes: ["progress-data:/workspace/storage/progress"]
-    command: node apps/progress/src/health.mjs
+    command: node apps/progress/dist/main.js
     environment: ["PORT=4004"]
     ports: ["4004:4004"]
   files:
@@ -32,12 +32,12 @@ services:
     working_dir: /workspace
     volumes: ["files-data:/workspace/storage/files", "files-db:/workspace/storage/files-db"]
     environment: ["PORT=4005", "FILES_DATABASE=storage/files-db/files.sqlite"]
-    command: node apps/files/src/health.mjs
+    command: node apps/files/dist/main.js
     ports: ["4005:4005"]
   gateway:
     build: .
     working_dir: /workspace
-    command: node apps/gateway/src/health.mjs
+    command: node apps/gateway/dist/main.js
     environment:
       PORT: "4000"
       AUTH_URL: "http://auth:4001"
@@ -50,18 +50,18 @@ services:
   storefront:
     build: .
     working_dir: /workspace
-    command: node apps/storefront/src/server.mjs
+    command: npx --yes pnpm --filter @plataforma/storefront run start
     environment:
       PORT: "3000"
       GATEWAY_URL: "http://gateway:4000"
-      CLASSROOM_PORT: "3004"
       CLASSROOM_HOST: "classroom"
+      CLASSROOM_PORT: "3004"
     ports: ["3000:3000"]
     depends_on: [gateway]
   classroom:
     build: .
     working_dir: /workspace
-    command: node apps/classroom/src/server.mjs
+    command: npx --yes pnpm --filter @plataforma/classroom run start
     environment:
       PORT: "3004"
       GATEWAY_URL: "http://gateway:4000"

@@ -1,14 +1,21 @@
 # Resumo do Projeto Projeto Final
 
 ## Estado Atual
-- (última atualização: 2026-08-24)
-- Frente visual + integração frontend↔backend implementada.
-- Storefront (port 3000): catálogo com fetch `/api/catalog/courses`, fallback local, proxy interno para Classroom preservando URL.
-- Classroom (port 3004): fetch curso via API, matrícula, progresso via PATCH, certificado, fallback localStorage.
-- 23 testes de integração/rotas passando; Docker build e compose config validados.
+- (última atualização: 2026-08-25)
+- **Migração de stack concluída**: todos os 6 backends agora em **NestJS + TypeScript** (auth, admin, catalog, progress, files, gateway) e os 2 frontends em **Next.js 14 (App Router, Multi-Zone)**.
+- Storefront (3000) e Classroom (3004): apps Next reais; proxy `/curso/:id` via rewrite (resolvido em build-time — `ENV CLASSROOM_HOST=classroom` no Dockerfile).
+- Cada backend: `tsc` → `dist/main.js`, controller/service/repository com decorators, health em `@Get('health')`, exceções Nest (`NotFoundException`/`BadRequestException`/`UnauthorizedException`). Gateway usa adaptador **Express** com `bodyParser: false` para streaming do proxy.
+- **61/61 testes passando**; `pnpm run build` completo verde (9 apps); 8 imagens Docker construídas e stack validado end-to-end (6 serviços + 2 frontends, proxy, fluxos auth/catalog/progress/files/admin via gateway).
 
 ## Decisões Tomadas
-- Arquitetura: Turborepo/pnpm, microsserviços Node.js puro (sem NestJS no MVP).
+- Arquitetura: Turborepo/pnpm + microsserviços. Frontends em **Next.js (App Router)**; backends em **NestJS + TypeScript** (compilado via `tsc` para CJS `dist/`).
+- NestJS em JS puro não funciona: **Node 22 não suporta decorators** → NestJS exige TypeScript (`experimentalDecorators` + `emitDecoratorMetadata`).
+- **Rewrite do Next é build-time** (gravado em `routes-manifest.json`); `next start` não reavalia env em runtime → `ENV CLASSROOM_HOST=classroom` no Dockerfile.
+- **Node arm64 obrigatório nesta máquina (Apple M4)**: Node x64 (Rosetta) + SWC ausente = `next build` "travado" (WASM). Usar `~/.nvm/versions/node/v22.23.1`.
+- Registry npm: `https://registry.npmmirror.com` (TLS do npmjs.org é interceptado nesta rede).
+- Gateway usa `@nestjs/platform-express` (não Fastify) com `bodyParser: false`, pois o proxy precisa de `req`/`res` Node nativos para streaming.
+- Files usa `@Res({ passthrough: true })` + `FastifyReply` para headers dinâmicos de download; `fastify` é dependência direta do files para os tipos.
+- Repositórios NestJS usam `@Optional()` no construtor (default de env) para evitar injeção de `String` pelo DI; SQLite via CLI `sqlite3` + fallback `:memory:`.
 - Storefront na porta 3000 usa proxy interno para Classroom (preserva URL no browser).
 - Classroom busca curso no Catálogo e progresso no Progresso via API Gateway.
 - Fallback local amigável: dados do shared/data.mjs quando API indisponível.
@@ -16,10 +23,9 @@
 - Usuário mockado como `user-123`; progresso usa referências lógicas para curso/aula.
 
 ## Próximos Passos
-- Implementar autenticação real e proteção de rotas.
-- Adicionar loading states mais elaborados (skeleton shimmer já implementado).
-- Integrar "Meus Cursos" com filtragem por matrícula do usuário.
-- Implementar upload de materiais via serviço de Arquivos.
+- Push dos commits pendentes: usuário precisa autenticar git (`could not read Username` — PAT/SSH).
+- Investigar/resolver o problema de FS que corrompeu arquivos (`docker-compose.yml` e `apps/admin/src/admin-service.mjs` ficaram ilegíveis/0 bytes — suspeita de sync iCloud em `~/Documents`).
+- (Opcional) Consolidar documentação restante se os contratos mudarem no futuro.
 
 ## Contexto Técnico
 - Documentos: PRD, Casos de Uso e SAD.
@@ -27,6 +33,7 @@
 - Critérios principais: `pnpm dev`/Docker, seed de 3 cursos × 5 aulas, PATCH de progresso e URL preservada na porta 3000.
 
 ## Últimas Sessões
+- 2026-08-25 — Microsserviço Progresso migrado para NestJS+TypeScript seguindo o padrão do Catálogo: deletados `health.mjs`, `progress-http.mjs`, `progress-service.mjs`, `progress-repository.mjs`; criados `main.ts`, `app.module.ts`, `progress/{module,controller,service,repository}.ts` e `test-server.mjs`. Repositório virou classe `@Injectable` com `@Optional()` default `process.env.PROGRESS_DATABASE ?? 'storage/progress/progress.sqlite'`, SQLite via CLI e fallback `:memory:`. Testes `tests/progress-http.test.mjs`/`progress-service.test.mjs` reescritos importando de `dist/` com guarda de skip; 5/5 passando. `docker-compose.yml` e `tests/foundation.test.mjs` ainda apontam para `src/health.mjs` (não tocados por instrução).
 - 2026-08-24 — Leitura integral dos três documentos e das duas telas; identificadas divergências e lacunas de especificação.
 - 2026-08-24 — Brainstorming iniciado: identidade A (institucional/limpa); MVP ampliado; autenticação completa com usuários seed; perfis aluno/professor/admin; professor gerencia cursos e aulas e publica diretamente; remoção de cursos exige aprovação do admin, permanecendo publicada até decisão; certificados a 100%; matrícula livre; busca e filtros por categoria; aulas com materiais via upload.
 - 2026-08-24 — Refinamento: materiais em PDF/DOC/DOCX/JPG/PNG, limite de 50 MB, disco local e acesso para matriculados; admin tem acesso total aos cursos; cadastro público de alunos e professores por convite; login/logout, recuperação de senha e Google; categorias em lista fixa; remoções com indicador no painel.
@@ -52,3 +59,8 @@
 - 2026-08-24 — Diagramas Mermaid também disponibilizados como arquivos independentes: `docs/diagrama-arquitetura.mmd` e `docs/diagrama-fluxo-aluno.mmd`, referenciados na documentação de arquitetura.
 - 2026-08-24 — Frente visual implementada: Storefront com catálogo de cards, busca/filtro por categoria, navegação para curso; Classroom com player placeholder, lista de aulas com checkboxes, barra de progresso e persistência via localStorage. Pacote `@plataforma/shared` criado para dados. Identidade visual A aplicada (Space Grotesk + DM Sans, azul #2563eb como acento). 16 testes de rotas/visual passando; Docker build e compose config validados.
 - 2026-08-24 — Integração frontend↔backend: Storefront busca cursos de `/api/catalog/courses` com fallback local amigável; Classroom busca detalhes no Catálogo, cria matrícula via POST, busca progresso via GET e envia PATCH ao marcar/desmarcar aulas. Navegação corrigida: proxy interno preserva URL na porta 3000 (sem redirect). localStorage mantido apenas como fallback offline. Skeleton loading, toast de erro, barra de status online/offline, certificado a 100%. 23 testes passando; Docker build e compose config validados.
+- 2026-08-25 — Correção do desvio de stack e migração Next.js+NestJS: (1) diagnóstico do `next build` "travado" → Node x64 sob Rosetta + SWC ausente; troca para Node arm64 v22 e reinstall resolveram; (2) migração dos frontends para Next.js App Router (deletados `server.mjs` nativos), com correções de CSS Modules (`:root` em `page.module.css` inválido → CSS global) e split server/client no Classroom (`notFound()` para 404 real); (3) Catálogo migrado para NestJS+TypeScript (tsc→dist, decorators, `@Optional()` no repositório); (4) descoberto que rewrite do Next é build-time → `ENV CLASSROOM_HOST=classroom` no Dockerfile; (5) arquivo `admin-service.mjs` corrompido a 0 bytes pelo FS foi restaurado do git. Resultado: 55/55 testes, build verde, 8 imagens Docker e stack validado end-to-end.
+- 2026-08-25 — Files migrado para NestJS+TypeScript: criados `src/main.ts`, `src/app.module.ts`, `src/files/{files.module,files.controller,files.service}.ts`, `test-server.mjs` e `src/types.d.ts`; deletados `files-http.mjs`, `file-service.mjs`, `health.mjs`. Testes `tests/files-{http,service}.test.mjs` reescritos para importar de `dist/` com guarda de skip e `mkdtempSync`. `fastify` não é dependência direta nem hoisted → adicionado `src/types.d.ts` com `declare module 'fastify' { interface FastifyReply { header(...) } }` para o `import type { FastifyReply }` compilar. Build verde e 5/5 testes passando; contrato HTTP preservado (health 200, POST 201 sem `path`, download binário com headers, 400/404).
+- 2026-08-25 — **Auth migrado para NestJS+TypeScript** (padrão Catálogo): deletados os 6 `.mjs` nativos (`auth-http`, `auth-service`, `auth-repository`, `auth-tokens`, `auth-policy`, `health`); criados `main.ts` (FastifyAdapter, porta 4001), `app.module.ts` e `auth/{module,controller,service,repository,tokens,policy}.ts` + `test-server.mjs`. Lógica portada fielmente (scrypt, política de senha, HMAC-SHA256 JWT 15m, SQLite via CLI, `@Optional()` no repositório). Erros mapeados no controller: credenciais inválidas→`UnauthorizedException` (401), demais→`BadRequestException` (400); `set-cookie` via `@Res({passthrough:true})`. 15 testes `auth-*` reescritos para importar de `dist/` com guarda de skip; **15/15 passando** + build verde. Única quebra: `foundation.test.mjs` (checa `health.mjs` do auth) — NÃO alterado por instrução do usuário.
+- 2026-08-25 — Microsserviço `admin` migrado para NestJS+TypeScript seguindo o padrão do Catálogo: `src/main.ts` (Fastify, porta 4002), `app.module.ts`, `admin/admin.{module,controller,service,repository}.ts`, `test-server.mjs`; deletados `admin-http.mjs`/`admin-service.mjs`/`admin-repository.mjs`/`health.mjs`. Contrato HTTP preservado (health 200, POST 201, GET lista, PATCH decisão, 404 via `NotFoundException`/400 via `BadRequestException`); `decideRemoval` agora retorna `decidedByRole` também no caminho SQLite (antes só em memória). Testes `admin-http`/`admin-removal` reescritos importando de `dist/` com skip guard. Build e 4/4 testes verdes. `foundation.test.mjs` e `docker-compose.yml` intencionalmente NÃO tocados (ainda referenciam `apps/admin/src/health.mjs`).
+- 2026-08-25 — Migração NestJS concluída para todos os backends. Lanes paralelas via `general` (o `@fixer` está quebrado: "Model not found: opencode/deepseek-v4-flash-free") migraram auth (15 testes), admin (4), progress (5) e files (5); o gateway (proxy) foi migrado diretamente pelo orquestrador usando `@nestjs/platform-express` com `bodyParser: false`. Reconciliados `docker-compose.yml` (6 comandos → `dist/main.js`), `tests/foundation.test.mjs` (health via `@Get('health')`) e docs. Shim de tipos do files substituído por dependência real `fastify`. Resultado final: **61/61 testes**, build verde (9 apps), 8 imagens Docker e smoke test end-to-end (6 serviços + 2 frontends, proxy, fluxos auth/catalog/progress/files/admin) aprovados.
