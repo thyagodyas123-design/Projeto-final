@@ -56,6 +56,14 @@ export class ProgressRepository {
     return (await this.findEnrollment(userId, courseId)) ?? enrollment;
   }
 
+  async listEnrollments(userId: string) {
+    if (this.memory) {
+      return [...this.memory.enrollments.values()].filter((item) => item.userId === userId);
+    }
+    const output = runSqlite(this.filename, `SELECT id, user_id AS userId, course_id AS courseId FROM enrollments WHERE user_id=${quote(userId)} ORDER BY rowid;`, true);
+    return output ? JSON.parse(output) : [];
+  }
+
   async setLesson(enrollmentId: string, lessonId: string, completed: boolean) {
     if (this.memory) {
       const key = `${enrollmentId}:${lessonId}`;

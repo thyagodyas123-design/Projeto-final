@@ -67,4 +67,11 @@ export class AuthService {
     const { password: _password, ...safeUser } = user;
     return safeUser;
   }
+
+  async getUserById(id: string) {
+    const user = await this.repository.findUserById(id);
+    if (!user) return null;
+    const { password: _password, ...safeUser } = user;
+    return safeUser;
+  }
 }

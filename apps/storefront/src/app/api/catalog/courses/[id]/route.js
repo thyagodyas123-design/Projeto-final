@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 
 const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:4000';
 
-export async function GET(request) {
+export async function GET(request, { params }) {
   try {
-    const upstream = new URL(request.url);
-    const target = new URL('/api/catalog/courses' + upstream.search, GATEWAY_URL);
+    const id = params.id;
+    const target = new URL(`/api/catalog/courses/${id}`, GATEWAY_URL);
     const res = await fetch(target, {
       headers: { 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(5000),

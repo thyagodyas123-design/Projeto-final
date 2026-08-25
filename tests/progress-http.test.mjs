@@ -47,3 +47,21 @@ t('PATCH /enrollments/:user/:course/lessons/:lesson atualiza conclusão', async 
   assert.equal((await response.json()).progressPercent, 50);
   await app.close();
 });
+
+t('GET /enrollments?userId= lista matrículas do usuário', async () => {
+  const { app, url } = await startApp();
+  for (const [userId, courseId] of [['user-1', 'course-1'], ['user-1', 'course-2'], ['user-2', 'course-1']]) {
+    await fetch(`${url}/enrollments`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ userId, courseId }),
+    });
+  }
+
+  const response = await fetch(`${url}/enrollments?userId=user-1`);
+  const list = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(list.length, 2);
+  assert.ok(list.every((e) => e.userId === 'user-1'));
+  await app.close();
+});

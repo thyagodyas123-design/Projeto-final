@@ -2,6 +2,7 @@
 
 ## Estado Atual
 - (última atualização: 2026-08-25)
+- **Auth UI + "Meus Cursos" no Storefront**: páginas `/login`, `/register`, `/meus-cursos` e header compartilhado (`components/Header.js`) implementados. Build verde (13 rotas estáticas/dinâmicas).
 - **Migração de stack concluída**: todos os 6 backends agora em **NestJS + TypeScript** (auth, admin, catalog, progress, files, gateway) e os 2 frontends em **Next.js 14 (App Router, Multi-Zone)**.
 - Storefront (3000) e Classroom (3004): apps Next reais; proxy `/curso/:id` via rewrite (resolvido em build-time — `ENV CLASSROOM_HOST=classroom` no Dockerfile).
 - Cada backend: `tsc` → `dist/main.js`, controller/service/repository com decorators, health em `@Get('health')`, exceções Nest (`NotFoundException`/`BadRequestException`/`UnauthorizedException`). Gateway usa adaptador **Express** com `bodyParser: false` para streaming do proxy.
@@ -25,6 +26,7 @@
 ## Próximos Passos
 - Push dos commits pendentes: usuário precisa autenticar git (`could not read Username` — PAT/SSH).
 - Investigar/resolver o problema de FS que corrompeu arquivos (`docker-compose.yml` e `apps/admin/src/admin-service.mjs` ficaram ilegíveis/0 bytes — suspeita de sync iCloud em `~/Documents`).
+- **BUG encontrado (fora do escopo, não corrigido por instrução)**: `apps/storefront/src/app/api/catalog/courses/[id]/route.js` ignora `params` e monta o target com `/api/catalog/courses` + `upstream.search` — retorna a LISTA, não o detalhe. `/meus-cursos` contornou consumindo `GET /api/catalog/courses` e filtrando por `courseId` client-side.
 - (Opcional) Consolidar documentação restante se os contratos mudarem no futuro.
 
 ## Contexto Técnico
@@ -33,6 +35,7 @@
 - Critérios principais: `pnpm dev`/Docker, seed de 3 cursos × 5 aulas, PATCH de progresso e URL preservada na porta 3000.
 
 ## Últimas Sessões
+- 2026-08-25 — **Auth UI + Meus Cursos (Storefront)**: extraído header compartilhado `src/app/components/Header.js` (`'use client'`, consulta `/api/auth/me`, estados logado/deslogado, logout); extraído `CourseCard.js` (reusado pelo catálogo e meus-cursos); criados `src/app/login/page.js`, `src/app/register/page.js` (validação client-side de senha), `src/app/meus-cursos/page.js` (redireciona 401→/login, lista matrículas + filtra catálogo), e `src/app/auth.css` (global, reusa tokens). `page.js` corrigido (header duplicado removido, links mortos "Meus Cursos"/"Ver Trilhas"/"Filtros" resolvidos). **Build travou ~2h por iCloud**: `next build` pendurado no `kevent` (0% CPU) em TODOS os apps Next (classroom também) por arquivos dataless do `node_modules` em `~/Documents` (iCloud); resolvido forçando materialização (`cat` em todos os `.js/.json/.mjs/.cjs` do pnpm store). Após materializar, compilou e revelou bug real: `./catalog.css` → `../catalog.css` em meus-cursos. Build verde (13 rotas). Erros de auth são formato NestJS (`{statusCode,message,error}`).
 - 2026-08-25 — Microsserviço Progresso migrado para NestJS+TypeScript seguindo o padrão do Catálogo: deletados `health.mjs`, `progress-http.mjs`, `progress-service.mjs`, `progress-repository.mjs`; criados `main.ts`, `app.module.ts`, `progress/{module,controller,service,repository}.ts` e `test-server.mjs`. Repositório virou classe `@Injectable` com `@Optional()` default `process.env.PROGRESS_DATABASE ?? 'storage/progress/progress.sqlite'`, SQLite via CLI e fallback `:memory:`. Testes `tests/progress-http.test.mjs`/`progress-service.test.mjs` reescritos importando de `dist/` com guarda de skip; 5/5 passando. `docker-compose.yml` e `tests/foundation.test.mjs` ainda apontam para `src/health.mjs` (não tocados por instrução).
 - 2026-08-24 — Leitura integral dos três documentos e das duas telas; identificadas divergências e lacunas de especificação.
 - 2026-08-24 — Brainstorming iniciado: identidade A (institucional/limpa); MVP ampliado; autenticação completa com usuários seed; perfis aluno/professor/admin; professor gerencia cursos e aulas e publica diretamente; remoção de cursos exige aprovação do admin, permanecendo publicada até decisão; certificados a 100%; matrícula livre; busca e filtros por categoria; aulas com materiais via upload.

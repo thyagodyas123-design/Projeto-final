@@ -72,3 +72,36 @@ t('Auth HTTP preserva cadastro no SQLite entre instâncias', async () => {
   await secondApp.close();
   rmSync(directory, { recursive: true, force: true });
 });
+
+t('GET /auth/me retorna usuário logado via cookie', async () => {
+  const { app, url } = await startApp();
+  const register = await fetch(`${url}/auth/register`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'me@example.com', password: 'Senha123!' }),
+  });
+  const cookie = register.headers.get('set-cookie').split(';')[0];
+
+  const me = await fetch(`${url}/auth/me`, { headers: { cookie } });
+  const body = await me.json();
+
+  assert.equal(me.status, 200);
+  assert.equal(body.user.email, 'me@example.com');
+  assert.equal(body.user.role, 'student');
+  await app.close();
+});
+
+t('GET /auth/me retorna 401 sem cookie', async () => {
+  const { app, url } = await startApp();
+  const me = await fetch(`${url}/auth/me`);
+  assert.equal(me.status, 401);
+  await app.close();
+});
+
+t('POST /auth/logout limpa o cookie', async () => {
+  const { app, url } = await startApp();
+  const logout = await fetch(`${url}/auth/logout`, { method: 'POST' });
+  assert.equal(logout.status, 200);
+  assert.match(logout.headers.get('set-cookie'), /Max-Age=0/);
+  await app.close();
+});

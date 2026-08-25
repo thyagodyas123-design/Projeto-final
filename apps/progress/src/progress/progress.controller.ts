@@ -17,6 +17,12 @@ export class ProgressController {
     return this.progressService.enroll(body);
   }
 
+  @Get('enrollments')
+  @HttpCode(HttpStatus.OK)
+  async listEnrollments(@Query('userId') userId: string) {
+    return this.progressService.listEnrollments(userId ?? '');
+  }
+
   @Get('enrollments/:userId/:courseId')
   @HttpCode(HttpStatus.OK)
   async getProgress(

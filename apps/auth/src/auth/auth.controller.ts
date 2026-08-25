@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Post,
@@ -13,6 +14,15 @@ import { AuthService } from './auth.service';
 import { TokenService } from './auth.tokens';
 
 const accessCookie = (token: string) => `access_token=${token}; HttpOnly; Path=/; SameSite=Lax`;
+
+function readCookie(cookieHeader: string | undefined, name: string) {
+  if (!cookieHeader) return null;
+  for (const part of cookieHeader.split(';')) {
+    const [key, ...rest] = part.trim().split('=');
+    if (key === name) return rest.join('=');
+  }
+  return null;
+}
 
 @Controller()
 export class AuthController {
@@ -51,6 +61,28 @@ export class AuthController {
     } catch (error) {
       this.mapError(error);
     }
+  }
+
+  @Get('auth/me')
+  @HttpCode(HttpStatus.OK)
+  async me(@Headers('cookie') cookieHeader: string) {
+    const token = readCookie(cookieHeader, 'access_token');
+    if (!token) throw new UnauthorizedException('não autenticado');
+    try {
+      const { sub } = this.tokens.verifyAccessToken(token);
+      const user = await this.authService.getUserById(sub);
+      if (!user) throw new UnauthorizedException('não autenticado');
+      return { user };
+    } catch {
+      throw new UnauthorizedException('não autenticado');
+    }
+  }
+
+  @Post('auth/logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Res({ passthrough: true }) res: any) {
+    res.header('set-cookie', 'access_token=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');
+    return { ok: true };
   }
 
   private mapError(error: any): never {

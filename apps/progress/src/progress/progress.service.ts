@@ -9,6 +9,10 @@ export class ProgressService {
     return this.repository.createEnrollment(userId, courseId);
   }
 
+  async listEnrollments(userId: string) {
+    return this.repository.listEnrollments(userId);
+  }
+
   async getProgress({ userId, courseId, totalLessons = 0 }: { userId: string; courseId: string; totalLessons?: number }) {
     const enrollment = await this.repository.findEnrollment(userId, courseId);
     if (!enrollment) return { enrollment: null, completedLessonIds: [], progressPercent: 0, certificate: null };

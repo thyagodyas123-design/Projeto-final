@@ -69,5 +69,16 @@ export class AuthRepository {
     return toUser(output ? JSON.parse(output)[0] : null);
   }
 
+  async findUserById(id: string) {
+    if (this.memory) {
+      for (const user of this.memory.values()) {
+        if (user.id === id) return { ...user };
+      }
+      return null;
+    }
+    const output = runSqlite(this.filename, `SELECT id, email, role, password, active FROM users WHERE id = ${quote(id)} LIMIT 1;`, true);
+    return toUser(output ? JSON.parse(output)[0] : null);
+  }
+
   close() {}
 }

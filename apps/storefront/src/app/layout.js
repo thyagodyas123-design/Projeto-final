@@ -1,4 +1,5 @@
 import './globals.css';
+import './auth.css';
 
 export const metadata = {
   title: 'Fábrica de Gênios — Catálogo de Cursos',
