@@ -30,8 +30,8 @@ services:
   files:
     build: .
     working_dir: /workspace
-    volumes: ["files-data:/workspace/storage/files", "files-db:/workspace/storage/files-db"]
-    environment: ["PORT=4005", "FILES_DATABASE=storage/files-db/files.sqlite"]
+    volumes: ["files-data:/workspace/storage/files"]
+    environment: ["PORT=4005", "FILES_DATABASE=storage/files/files.sqlite"]
     command: node apps/files/dist/main.js
     ports: ["4005:4005"]
   gateway:
@@ -73,5 +73,4 @@ volumes:
   auth-data:
   catalog-data:
   files-data:
-  files-db:
   progress-data:
